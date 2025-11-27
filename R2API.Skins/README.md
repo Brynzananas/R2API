@@ -14,7 +14,8 @@ Alongside the old skin creation methods from ``R2API.Loadout``, R2API.Skins also
 
 ### `1.4.3`
 
-* Added missing nullchecks for SkinSkillVariants.
+* Add missing nullchecks for SkinSkillVariants.
+* Add `lowPriority` boolean field to `SkinSkillVariantsDef`.
 
 ### `1.4.2`
 
