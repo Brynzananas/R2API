@@ -12,17 +12,23 @@ public class RunCombatDirectorsFixedUpdate : MonoBehaviour
     public CombatDirector[] combatDirectors;
     public void Awake()
     {
-        currentStageCombatDirectorsHashSet.Clear();
+        _currentStageCombatDirectorsHashSet.Clear();
         combatDirectors = GetComponents<CombatDirector>();
         if (combatDirectors == null) return;
-        foreach (CombatDirector combatDirector in combatDirectors) currentStageCombatDirectorsHashSet.Add(combatDirector);
+        foreach (CombatDirector combatDirector in combatDirectors) _currentStageCombatDirectorsHashSet.Add(combatDirector);
     }
     public void FixedUpdate()
     {
         if (combatDirectors == null) return;
-        foreach (CombatDirector combatDirector in combatDirectors)
+        for (int i = 0; i < _allCombatDirectors.Count; i++)
         {
-            if (!combatDirector || !HandleCombatDirectorActivity(combatDirector)) continue;
+            CombatDirector combatDirector = _allCombatDirectors[i];
+            if (!combatDirector)
+            {
+                _allCombatDirectors.RemoveAt(i);
+                continue;
+            }
+            if (!HandleCombatDirectorActivity(combatDirector)) continue;
             combatDirector.FixedUpdate();
         }
     }

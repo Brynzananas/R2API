@@ -23,7 +23,9 @@ public static partial class DirectorAPI
 
     private static event GetCombatDirectorActivityCountDelegate _getCombatDirectorActivityCount;
 
-    internal static HashSet<CombatDirector> currentStageCombatDirectorsHashSet = [];
+    internal static HashSet<CombatDirector> _currentStageCombatDirectorsHashSet = [];
+
+    internal static List<CombatDirector> _allCombatDirectors = [];
     internal static void SetHooks()
     {
         if (_hooksEnabled)
@@ -50,6 +52,9 @@ public static partial class DirectorAPI
         On.RoR2.DirectorCore.OnEnable += AddRunCombatDirectorsFixedUpdateComponent;
 
         IL.RoR2.CombatDirector.FixedUpdate += CombatDirector_FixedUpdate;
+
+        On.RoR2.CombatDirector.Awake += CombatDirector_Awake;
+
         _hooksEnabled = true;
     }
 
@@ -64,7 +69,14 @@ public static partial class DirectorAPI
 
         IL.RoR2.CombatDirector.FixedUpdate -= CombatDirector_FixedUpdate;
 
+        On.RoR2.CombatDirector.Awake -= CombatDirector_Awake;
+
         _hooksEnabled = false;
+    }
+    private static void CombatDirector_Awake(On.RoR2.CombatDirector.orig_Awake orig, CombatDirector self)
+    {
+        orig(self);
+        _allCombatDirectors.Add(self);
     }
     private static void CombatDirector_FixedUpdate(ILContext il)
     {
@@ -85,7 +97,7 @@ public static partial class DirectorAPI
     }
     private static bool HandleCombatDirectorInactivity(CombatDirector combatDirector)
     {
-        if (!currentStageCombatDirectorsHashSet.Contains(combatDirector) || !combatDirector.enabled) return true;
+        if (!combatDirector.enabled) return true;
         int activityCount = 0;
         _getCombatDirectorActivityCount?.Invoke(combatDirector, ref activityCount);
         if (activityCount < 0) return false;
@@ -93,7 +105,7 @@ public static partial class DirectorAPI
     }
     internal static bool HandleCombatDirectorActivity(CombatDirector combatDirector)
     {
-        if (combatDirector.enabled) return false;
+        if (combatDirector.enabled || combatDirector.moneyWaves == null) return false;
         int activityCount = 0;
         _getCombatDirectorActivityCount?.Invoke(combatDirector, ref activityCount);
         if (activityCount > 0) return true;
@@ -770,4 +782,6 @@ public static partial class DirectorAPI
             dccs.categories[i] = category;
         }
     }
+
+    private static bool IsStageCombatDirectorInternal(CombatDirector combatDirector) => _currentStageCombatDirectorsHashSet.Contains(combatDirector);
 }

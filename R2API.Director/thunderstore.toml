@@ -6,7 +6,7 @@ schemaVersion = "0.0.1"
 namespace = "RiskofThunder"
 name = "R2API_Director"
 versionNumber = "3.1.0"
-description = "API for easily modifiying the Director (RoR2 monster / interactable spawner) behaviour, cloning Spawn Cards and enabling/disabling stage Combat Directors"
+description = "API for easily modifiying the Director (RoR2 monster / interactable spawner) behaviour, cloning Spawn Cards and enabling/disabling Combat Directors"
 websiteUrl = "https://github.com/risk-of-thunder/R2API"
 containsNsfwContent = false
 
