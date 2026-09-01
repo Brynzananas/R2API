@@ -19,6 +19,7 @@ public class RunCombatDirectorsFixedUpdate : MonoBehaviour
     }
     public void FixedUpdate()
     {
+        if (combatDirectors == null) return;
         foreach (CombatDirector combatDirector in combatDirectors)
         {
             if (!combatDirector || !HandleCombatDirectorActivity(combatDirector)) continue;
