@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using HG;
+using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using R2API.Utils;
 using RoR2;
@@ -18,6 +19,11 @@ public static partial class DirectorAPI
 
     private static bool _hooksEnabled = false;
 
+    public delegate void GetCombatDirectorActivityCountDelegate(CombatDirector combatDirector, ref int activityCount);
+
+    private static event GetCombatDirectorActivityCountDelegate _getCombatDirectorActivityCount;
+
+    internal static HashSet<CombatDirector> currentStageCombatDirectorsHashSet = [];
     internal static void SetHooks()
     {
         if (_hooksEnabled)
@@ -41,6 +47,9 @@ public static partial class DirectorAPI
 
         On.RoR2.SceneCatalog.Init += InitStageEnumToSceneDefs;
 
+        On.RoR2.DirectorCore.OnEnable += AddRunCombatDirectorsFixedUpdateComponent;
+
+        IL.RoR2.CombatDirector.FixedUpdate += CombatDirector_FixedUpdate;
         _hooksEnabled = true;
     }
 
@@ -51,7 +60,49 @@ public static partial class DirectorAPI
 
         On.RoR2.SceneCatalog.Init -= InitStageEnumToSceneDefs;
 
+        On.RoR2.DirectorCore.OnEnable -= AddRunCombatDirectorsFixedUpdateComponent;
+
+        IL.RoR2.CombatDirector.FixedUpdate -= CombatDirector_FixedUpdate;
+
         _hooksEnabled = false;
+    }
+    private static void CombatDirector_FixedUpdate(ILContext il)
+    {
+        ILCursor c = new ILCursor(il);
+        ILLabel iLLabel = null;
+        if (!c.TryGotoNext(MoveType.After,
+               x => x.MatchCall(typeof(Run).GetPropertyGetter(nameof(Run.instance))),
+               x => x.MatchCall<UnityEngine.Object>("op_Implicit"),
+               x => x.MatchBrfalse(out iLLabel)
+            ))
+        {
+            DirectorPlugin.Logger.LogError(il.Method.Name + " IL Hook failed!");
+            return;
+        }
+        c.Emit(OpCodes.Ldarg_0);
+        c.EmitDelegate(HandleCombatDirectorInactivity);
+        c.Emit(OpCodes.Brfalse_S, iLLabel);
+    }
+    private static bool HandleCombatDirectorInactivity(CombatDirector combatDirector)
+    {
+        if (!currentStageCombatDirectorsHashSet.Contains(combatDirector) || !combatDirector.enabled) return true;
+        int activityCount = 0;
+        _getCombatDirectorActivityCount?.Invoke(combatDirector, ref activityCount);
+        if (activityCount < 0) return false;
+        return true;
+    }
+    internal static bool HandleCombatDirectorActivity(CombatDirector combatDirector)
+    {
+        if (combatDirector.enabled) return false;
+        int activityCount = 0;
+        _getCombatDirectorActivityCount?.Invoke(combatDirector, ref activityCount);
+        if (activityCount > 0) return true;
+        return false;
+    }
+    private static void AddRunCombatDirectorsFixedUpdateComponent(On.RoR2.DirectorCore.orig_OnEnable orig, DirectorCore self)
+    {
+        orig(self);
+        RunCombatDirectorsFixedUpdate runCombatDirectorsFixedUdpate = self.gameObject.EnsureComponent<RunCombatDirectorsFixedUpdate>();
     }
 
     private static void ApplyChangesOnStart(On.RoR2.ClassicStageInfo.orig_Start orig, ClassicStageInfo classicStageInfo)

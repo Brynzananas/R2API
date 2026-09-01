@@ -29,6 +29,22 @@ public static partial class DirectorAPI
     public static bool Loaded => true;
 
     /// <summary>
+    /// Subscribe to this event to modify activity of stage combat directors. Fired during CombatDirector.FixedUpdate.
+    /// </summary>
+    public static event GetCombatDirectorActivityCountDelegate GetCombatDirectorActivityCount
+    {
+        add
+        {
+            SetHooks();
+            _getCombatDirectorActivityCount += value;
+        }
+        remove
+        {
+            _getCombatDirectorActivityCount -= value;
+        }
+    }
+
+    /// <summary>
     /// Event used to edit <see cref="StageSettings"/>.
     /// </summary>
     public static event Action<StageSettings, StageInfo>? StageSettingsActions;
