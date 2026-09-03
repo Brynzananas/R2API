@@ -29,6 +29,22 @@ public static partial class DirectorAPI
     public static bool Loaded => true;
 
     /// <summary>
+    /// Subscribe to this event to modify activity of combat directors. Fired during CombatDirector.FixedUpdate. If activityCount is higher than 0, Combat Director will remain running even when disabled. If activityCount is lower than 0, Combat Director will not run.
+    /// </summary>
+    public static event GetCombatDirectorActivityCountDelegate GetCombatDirectorActivityCount
+    {
+        add
+        {
+            SetHooks();
+            _getCombatDirectorActivityCount += value;
+        }
+        remove
+        {
+            _getCombatDirectorActivityCount -= value;
+        }
+    }
+
+    /// <summary>
     /// Event used to edit <see cref="StageSettings"/>.
     /// </summary>
     public static event Action<StageSettings, StageInfo>? StageSettingsActions;
@@ -927,4 +943,6 @@ public static partial class DirectorAPI
         /// </summary>
         public string? SelectionChatString;
     }
+
+    public static bool IsStageCombatDirector(this CombatDirector combatDirector) => IsStageCombatDirectorInternal(combatDirector);
 }

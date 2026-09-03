@@ -16,9 +16,14 @@ Alongside this, R2API.Director also comes bundled with DirectorAPIHelpers, which
 
 Additionaly you can clone existing spawn cards and set new values for cloned spawn cards using CharacterSpawnCardClone, InteractableSpawnCardClone and MultiCharacterSpawnCardClone.
 
+Also provides an event to easily enable/disable Combat Directors. Provides an extension method IsStageCombatDirector to check is Combat Director part of stage Combat Directors
+
 ## Related Pages
 
 ## Changelog
+
+## `3.1.0`
+* Added enabling/disabling Combat Directors event.
 
 ### `3.0.1`
 * Fix spawn card clones not being able to be applied more than once for the dccspool in a single game session.
